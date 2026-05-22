@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>新闻风险识别系统</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500&family=IBM+Plex+Mono:wght@400;500&family=DM+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #F7F6F2;
+      --surface:    #FFFFFF;
+      --surface2:   #F1EFE8;
+      --border:     rgba(0,0,0,0.10);
+      --border2:    rgba(0,0,0,0.18);
+      --text:       #1A1917;
+      --text2:      #5F5E5A;
+      --text3:      #888780;
+      --accent:     #1A1917;
+      --green:      #3B6D11;
+      --green-bg:   #EAF3DE;
+      --green-bd:   #C0DD97;
+      --amber:      #854F0B;
+      --amber-bg:   #FAEEDA;
+      --amber-bd:   #FAC775;
+      --red:        #A32D2D;
+      --red-bg:     #FCEBEB;
+      --red-bd:     #F7C1C1;
+      --blue:       #185FA5;
+      --blue-bg:    #E6F1FB;
+      --fn: 'DM Sans', sans-serif;
+      --fm: 'IBM Plex Mono', monospace;
+      --fs: 'Noto Serif SC', serif;
+      --r-sm: 6px;
+      --r-md: 10px;
+      --r-lg: 14px;
+    }
+
+    body {
+      font-family: var(--fn);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Layout ── */
+    .page-wrap {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+    }
+
+    /* ── Header ── */
+    .site-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 2.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 0.5px solid var(--border2);
+    }
+    .site-title {
+      font-size: 26px;
+      font-weight: 500;
+      letter-spacing: -0.5px;
+      color: var(--text);
+      line-height: 1.2;
+    }
+    .site-subtitle {
+      font-size: 13px;
+      color: var(--text3);
+      margin-top: 5px;
+      font-family: var(--fm);
+    }
+    .version-badge {
+      font-family: var(--fm);
+      font-size: 11px;
+      padding: 3px 10px;
+      border: 0.5px solid var(--border2);
+      border-radius: var(--r-sm);
+      color: var(--text3);
+    }
+
+    /* ── Input card ── */
+    .input-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .tab-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 1.25rem;
+    }
+    .tab-btn {
+      padding: 6px 16px;
+      font-size: 13px;
+      font-family: var(--fn);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-sm);
+      background: var(--surface2);
+      color: var(--text2);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tab-btn:hover { background: var(--surface); border-color: var(--border2); }
+    .tab-btn.active {
+      background: var(--surface);
+      border-color: var(--border2);
+      color: var(--text);
+      font-weight: 500;
+    }
+    .field-label {
+      font-size: 11px;
+      color: var(--text3);
+      font-family: var(--fm);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+    textarea, input[type="text"] {
+      width: 100%;
+      font-family: var(--fm);
+      font-size: 13px;
+      padding: 11px 13px;
+      background: var(--surface2);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-md);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
+      line-height: 1.6;
+    }
+    textarea { resize: vertical; min-height: 110px; }
+    textarea:focus, input[type="text"]:focus { border-color: var(--border2); }
+    textarea::placeholder, input::placeholder { color: var(--text3); }
+    .url-note {
+      font-size: 11px;
+      color: var(--text3);
+      font-family: var(--fm);
+      margin-top: 7px;
+    }
+    .btn-row {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin-top: 1rem;
+      gap: 10px;
+    }
+    .clear-btn {
+      padding: 9px 18px;
+      font-size: 13px;
+      font-family: var(--fn);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-md);
+      background: transparent;
+      color: var(--text2);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .clear-btn:hover { background: var(--surface2); }
+    .analyze-btn {
+      padding: 9px 24px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: var(--fn);
+      border: none;
+      border-radius: var(--r-md);
+      background: var(--accent);
+      color: #fff;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .analyze-btn:hover { opacity: 0.85; }
+    .analyze-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Results ── */
+    .results { display: none; }
+    .results.show { display: flex; flex-direction: column; gap: 1rem; }
+
+    /* verdict banner */
+    .verdict-banner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 18px;
+      border-radius: var(--r-md);
+      font-size: 15px;
+      font-weight: 500;
+    }
+    .verdict-low  { background: var(--green-bg); border: 0.5px solid var(--green-bd); color: var(--green); }
+    .verdict-mid  { background: var(--amber-bg); border: 0.5px solid var(--amber-bd); color: var(--amber); }
+    .verdict-high { background: var(--red-bg);   border: 0.5px solid var(--red-bd);   color: var(--red); }
+    .verdict-icon { font-size: 18px; }
+
+    /* score grid */
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .metric-card {
+      background: var(--surface2);
+      border-radius: var(--r-md);
+      padding: 1rem 1rem 0.9rem;
+      text-align: center;
+    }
+    .metric-label { font-size: 11px; color: var(--text2); margin-bottom: 7px; font-family: var(--fm); }
+    .metric-val { font-size: 30px; font-weight: 500; font-family: var(--fm); line-height: 1; }
+    .metric-sub { font-size: 11px; color: var(--text3); margin-top: 5px; }
+
+    /* bar section */
+    .bar-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 1.25rem 1.5rem;
+    }
+    .bar-row { margin-bottom: 14px; }
+    .bar-row:last-child { margin-bottom: 0; }
+    .bar-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .bar-name { font-size: 13px; font-weight: 500; }
+    .lvl-badge {
+      font-family: var(--fm);
+      font-size: 11px;
+      padding: 2px 9px;
+      border-radius: var(--r-sm);
+    }
+    .lvl-low  { background: var(--green-bg); color: var(--green); }
+    .lvl-mid  { background: var(--amber-bg); color: var(--amber); }
+    .lvl-high { background: var(--red-bg);   color: var(--red); }
+    .bar-track { height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+    .bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      width: 0;
+      transition: width 0.7s cubic-bezier(.22,.68,0,1.2);
+    }
+    .bar-fill-low  { background: #639922; }
+    .bar-fill-mid  { background: #BA7517; }
+    .bar-fill-high { background: #E24B4A; }
+    .divider { height: 0.5px; background: var(--border); margin: 14px 0; }
+
+    /* hit cards */
+    .hit-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 1.25rem 1.5rem;
+    }
+    .hit-card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+    .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .dot-red    { background: #E24B4A; }
+    .dot-amber  { background: #BA7517; }
+    .dot-blue   { background: #378ADD; }
+    .tag-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag {
+      font-size: 12px;
+      font-family: var(--fm);
+      padding: 3px 11px;
+      border-radius: var(--r-sm);
+      border: 0.5px solid;
+    }
+    .tag-emotion { background: var(--red-bg);   color: var(--red);   border-color: #F09595; }
+    .tag-source  { background: var(--amber-bg); color: var(--amber); border-color: #FAC775; }
+    .empty-msg { font-size: 13px; color: var(--text3); font-style: italic; }
+
+    /* AI analysis */
+    .ai-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 1.25rem 1.5rem;
+    }
+    .ai-body {
+      font-family: var(--fs);
+      font-size: 14px;
+      line-height: 1.85;
+      color: var(--text);
+    }
+    .ai-body p { margin-bottom: 10px; }
+    .ai-body p:last-child { margin-bottom: 0; }
+    .loading-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--text2);
+      font-size: 13px;
+    }
+    .spinner {
+      width: 14px; height: 14px;
+      border: 1.5px solid var(--border2);
+      border-top-color: var(--text2);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* BERT row */
+    .bert-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 0.5px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .bert-pill {
+      font-size: 12px;
+      font-family: var(--fm);
+      padding: 3px 11px;
+      border-radius: var(--r-sm);
+      background: var(--blue-bg);
+      color: var(--blue);
+      border: 0.5px solid #B5D4F4;
+    }
+    .bert-label { font-size: 11px; color: var(--text3); font-family: var(--fm); margin-right: 4px; }
+
+    /* error */
+    .error-banner {
+      background: var(--red-bg);
+      border: 0.5px solid var(--red-bd);
+      color: var(--red);
+      border-radius: var(--r-md);
+      padding: 11px 16px;
+      font-size: 13px;
+      display: none;
+    }
+
+    /* footer */
+    .site-footer {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text3);
+      font-family: var(--fm);
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 0.5px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- Header -->
+  <header class="site-header">
+    <div>
+      <h1 class="site-title">新闻风险识别系统</h1>
+      <p class="site-subtitle">Fake News Risk Detection · 情绪渲染 &amp; 模糊信源双维评估</p>
+    </div>
+    <span class="version-badge">v1.0</span>
+  </header>
+
+  <!-- Input -->
+  <div class="input-card">
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="switchTab('text')">文本输入</button>
+      <button class="tab-btn" onclick="switchTab('url')">网页链接</button>
+    </div>
+
+    <div id="tab-text">
+      <p class="field-label">粘贴新闻标题或正文</p>
+      <textarea id="news-text" placeholder="在此粘贴新闻内容……&#10;例：震惊！知情人士透露某重大内幕，业内专家称局势已濒临失控，引发全网热议。"></textarea>
+    </div>
+
+    <div id="tab-url" style="display:none">
+      <p class="field-label">输入新闻 URL</p>
+      <input type="text" id="url-input" placeholder="https://example.com/news/..." />
+      <p class="url-note">系统将自动提取正文，如抓取失败请直接粘贴文本。</p>
+    </div>
+
+    <div class="btn-row">
+      <button class="clear-btn" onclick="clearAll()">清空</button>
+      <button class="analyze-btn" id="analyze-btn" onclick="runAnalysis()">开始分析 →</button>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div class="error-banner" id="error-banner"></div>
+
+  <!-- Results -->
+  <div class="results" id="results">
+
+    <div class="verdict-banner" id="verdict-banner">
+      <span class="verdict-icon" id="verdict-icon"></span>
+      <span id="verdict-text"></span>
+    </div>
+
+    <div class="score-grid">
+      <div class="metric-card">
+        <div class="metric-label">情绪渲染评分</div>
+        <div class="metric-val" id="emotion-score">—</div>
+        <div class="metric-sub" id="emotion-level-text">—</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">模糊信源评分</div>
+        <div class="metric-val" id="source-score">—</div>
+        <div class="metric-sub" id="source-level-text">—</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">综合风险指数</div>
+        <div class="metric-val" id="total-score">—</div>
+        <div class="metric-sub" id="total-level-text">—</div>
+      </div>
+    </div>
+
+    <div class="bar-card">
+      <div class="bar-row">
+        <div class="bar-head">
+          <span class="bar-name">情绪过度渲染</span>
+          <span class="lvl-badge" id="emotion-badge">—</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill" id="emotion-bar"></div></div>
+      </div>
+      <div class="divider"></div>
+      <div class="bar-row">
+        <div class="bar-head">
+          <span class="bar-name">模糊信息源</span>
+          <span class="lvl-badge" id="source-badge">—</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill" id="source-bar"></div></div>
+      </div>
+    </div>
+
+    <div class="hit-card">
+      <div class="hit-card-title"><span class="dot dot-red"></span>命中情绪渲染词</div>
+      <div class="tag-wrap" id="emotion-hits"></div>
+    </div>
+
+    <div class="hit-card">
+      <div class="hit-card-title"><span class="dot dot-amber"></span>命中模糊信源表达</div>
+      <div class="tag-wrap" id="source-hits"></div>
+    </div>
+
+    <div class="ai-card">
+      <div class="hit-card-title"><span class="dot dot-blue"></span>AI 深度解读</div>
+      <div id="ai-output"></div>
+      <div id="bert-section" style="display:none" class="bert-row"></div>
+    </div>
+
+  </div>
+
+  <footer class="site-footer">
+    新闻风险识别系统 · 基于 BERT + 词典融合的多任务分类模型
+  </footer>
+</div>
+
+<script>
+  const API_BASE = "http://localhost:5000/api";
+  let currentTab = "text";
+
+  function switchTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll(".tab-btn").forEach((b, i) => {
+      b.classList.toggle("active", (i === 0 && tab === "text") || (i === 1 && tab === "url"));
+    });
+    document.getElementById("tab-text").style.display = tab === "text" ? "block" : "none";
+    document.getElementById("tab-url").style.display  = tab === "url"  ? "block" : "none";
+  }
+
+  function clearAll() {
+    document.getElementById("news-text").value = "";
+    document.getElementById("url-input").value = "";
+    document.getElementById("results").classList.remove("show");
+    document.getElementById("error-banner").style.display = "none";
+  }
+
+  function showError(msg) {
+    const el = document.getElementById("error-banner");
+    el.textContent = "错误：" + msg;
+    el.style.display = "block";
+  }
+
+  function hideError() {
+    document.getElementById("error-banner").style.display = "none";
+  }
+
+  function applyLevel(score) {
+    if (score <= 25) return "low";
+    if (score <= 55) return "mid";
+    return "high";
+  }
+
+  const LEVEL_CN = { low: "低风险", mid: "中风险", high: "高风险" };
+  const LEVEL_ICON = { low: "✓ 综合风险等级：低", mid: "⚠ 综合风险等级：中", high: "✕ 综合风险等级：高" };
+
+  function renderResults(data) {
+    document.getElementById("results").classList.add("show");
+
+    const eLevel = applyLevel(data.emotion_score);
+    const sLevel = applyLevel(data.source_score);
+    const tLevel = applyLevel(data.total_score);
+
+    // verdict
+    const banner = document.getElementById("verdict-banner");
+    banner.className = "verdict-banner verdict-" + tLevel;
+    document.getElementById("verdict-icon").textContent = { low: "✓", mid: "⚠", high: "✕" }[tLevel];
+    document.getElementById("verdict-text").textContent = "综合风险等级：" + { low: "低", mid: "中", high: "高" }[tLevel];
+
+    // scores
+    document.getElementById("emotion-score").textContent = data.emotion_score;
+    document.getElementById("source-score").textContent  = data.source_score;
+    document.getElementById("total-score").textContent   = data.total_score;
+    document.getElementById("emotion-level-text").textContent = LEVEL_CN[eLevel];
+    document.getElementById("source-level-text").textContent  = LEVEL_CN[sLevel];
+    document.getElementById("total-level-text").textContent   = LEVEL_CN[tLevel];
+
+    // badges
+    ["emotion", "source"].forEach((k, i) => {
+      const level = [eLevel, sLevel][i];
+      const el = document.getElementById(k + "-badge");
+      el.textContent = LEVEL_CN[level];
+      el.className = "lvl-badge lvl-" + level;
+    });
+
+    // bars (delay for animation)
+    setTimeout(() => {
+      const ef = document.getElementById("emotion-bar");
+      ef.style.width = data.emotion_score + "%";
+      ef.className = "bar-fill bar-fill-" + eLevel;
+      const sf = document.getElementById("source-bar");
+      sf.style.width = data.source_score + "%";
+      sf.className = "bar-fill bar-fill-" + sLevel;
+    }, 60);
+
+    // hit tags
+    const ehEl = document.getElementById("emotion-hits");
+    ehEl.innerHTML = data.emotion_hits && data.emotion_hits.length
+      ? data.emotion_hits.map(w => `<span class="tag tag-emotion">${w}</span>`).join("")
+      : `<span class="empty-msg">未检测到情绪渲染词</span>`;
+
+    const shEl = document.getElementById("source-hits");
+    shEl.innerHTML = data.vague_hits && data.vague_hits.length
+      ? data.vague_hits.map(w => `<span class="tag tag-source">${w}</span>`).join("")
+      : `<span class="empty-msg">未检测到模糊信息源</span>`;
+
+    // BERT predictions
+    if (data.bert_emotion || data.bert_source) {
+      const sec = document.getElementById("bert-section");
+      sec.style.display = "flex";
+      sec.innerHTML =
+        `<span class="bert-label">BERT 预测</span>` +
+        `<span class="bert-pill">情绪风险：${data.bert_emotion}</span>` +
+        `<span class="bert-pill">信源状态：${data.bert_source}</span>`;
+    }
+  }
+
+  async function callAI(text, data) {
+    document.getElementById("ai-output").innerHTML =
+      '<div class="loading-row"><span class="spinner"></span><span>正在调用 AI 深度分析……</span></div>';
+    try {
+      const prompt = `你是专业的新闻信息风险分析师。请对以下新闻文本进行分析（150字以内），评估：
+1. 是否存在情绪过度渲染，具体表现
+2. 信息来源是否清晰可查
+3. 给读者的阅读建议
+
+词典检测结果：
+- 情绪词命中 ${data.emotion_hits.length} 个：${data.emotion_hits.slice(0,8).join("、") || "无"}
+- 模糊信源命中 ${data.vague_hits.length} 个：${data.vague_hits.slice(0,5).join("、") || "无"}
+- 情绪评分 ${data.emotion_score}，信源评分 ${data.source_score}，综合 ${data.total_score}
+
+文本：${text.slice(0, 500)}
+
+请直接输出分析，不要标题或编号。`;
+
+      const resp = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          messages: [{ role: "user", content: prompt }]
+        })
+      });
+      const result = await resp.json();
+      const aiText = result.content?.map(b => b.text || "").join("") || "";
+      if (!aiText) throw new Error("空响应");
+      const paras = aiText.split("\n").filter(p => p.trim());
+      document.getElementById("ai-output").innerHTML =
+        '<div class="ai-body">' + paras.map(p => `<p>${p}</p>`).join("") + "</div>";
+    } catch {
+      document.getElementById("ai-output").innerHTML =
+        `<p class="empty-msg">AI 解读暂不可用（请确认 API Key 已配置），词典分析结果见上方。</p>`;
+    }
+  }
+
+  async function runAnalysis() {
+    hideError();
+    const text = currentTab === "text"
+      ? document.getElementById("news-text").value.trim()
+      : document.getElementById("url-input").value.trim();
+    if (!text) { showError("请先输入新闻文本或链接"); return; }
+
+    const btn = document.getElementById("analyze-btn");
+    btn.disabled = true;
+    btn.textContent = "分析中…";
+
+    try {
+      // 调用本地 Flask API
+      const endpoint = currentTab === "text" ? "/analyze/text" : "/analyze/url";
+      const body = currentTab === "text" ? { text } : { url: text };
+      const resp = await fetch(API_BASE + endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json();
+        throw new Error(err.error || resp.statusText);
+      }
+      const data = await resp.json();
+      renderResults(data);
+      // 并发调用 AI 解读
+      await callAI(currentTab === "text" ? text : (data.text_preview || ""), data);
+
+    } catch (e) {
+      const fallback = localAnalyze(text);
+      renderResults(fallback);
+      await callAI(text, fallback);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "重新分析 →";
+    }
+  }
+
+  // ── 纯前端词典回退（不依赖后端） ─────────────────────────────────────────
+  function localAnalyze(text) {
+    const EMOTION_WORDS = ["震惊","震撼","惊人","惊呆","惊爆","惊天","惊天秘密","惊天内幕","惊天大案","震动全国","震动世界","震撼人心","令人震惊","骇人听闻","不可思议","难以置信","令人咋舌","出人意料","令人瞠目结舌","可怕","恐怖","惊悚","骇人","危机","重大危机","巨大危机","危险","极度危险","严重危险","风险巨大","风险极高","灾难","灾难性","毁灭","毁灭性","崩溃","彻底崩溃","全面崩溃","濒临崩溃","极其严重","极度严重","史无前例","前所未有","空前严重","重大问题","重大隐患","严重后果","巨大损失","巨大冲击","重大冲击","重大影响","惊人后果","可怕后果","难以想象","令人担忧","令人不安","极端情况","愤怒","震怒","愤慨","怒斥","怒批","痛批","严厉批评","强烈谴责","公开谴责","猛烈抨击","严厉指责","强烈不满","激烈批评","猛烈攻击","彻底揭露","严肃追责","曝光","爆料","重磅爆料","重大爆料","内幕","黑幕","惊人内幕","惊天黑幕","不为人知","独家揭秘","深度揭秘","彻底揭开","揭露真相","令人愤怒","引发热议","引发众怒","引发争议","引发恐慌","引发担忧","引发轩然大波","社会震动","舆论哗然","全网热议","全网震惊","全民关注","最严重","最可怕","最危险","最惊人","极端恶劣","极其恶劣","极端严重","极端危险","极度夸张","极度异常","极其异常","严重失控","局势失控","完全失控","警惕","紧急","紧急警告","紧急提醒","紧急通知","重大警告","重要提醒","严正警告","强烈提醒","必须警惕","高度警惕","立即警惕","千万小心","务必注意","务必警惕","炸锅","刷屏","刷爆","爆火","爆红","火爆全网","热度飙升","舆论沸腾","网友炸锅","网友怒了","网友愤怒","巨大","极大","极端","极度","特别严重","异常严重","极为严重","极为罕见","高度异常","非常危险","极其危险","十分可怕","坚决反对","强烈反对","严厉打击","严厉整治","严肃处理","严肃调查","彻底整治","全面调查","全面清查","绝不姑息","绝不容忍","绝不允许","重大事件","重大事故","重大灾害","重大风险","重大危害","重大隐情","重大秘密","重大争议","严重问题","严重事故","严重灾难","严重影响","巨大争议","巨大影响","巨大问题"];
+    const VAGUE_WORDS = ["有消息称","消息称","消息人士称","消息人士表示","有消息透露","有消息指出","消息指出","有消息表示","据消息人士","据消息称","知情人士","知情人士称","知情人士表示","知情人士透露","内部知情人士","接近人士","接近人士称","接近人士表示","相关知情人士","不愿透露姓名的知情人士","业内人士","业内人士称","业内人士表示","业内人士认为","行业人士","行业人士称","行业人士认为","行业观察人士","行业分析人士","市场人士","专家称","专家表示","专家认为","专家指出","有专家称","有专家表示","有专家认为","专家分析","专家提醒","专家建议","专家解读","专家警告","有学者表示","学者认为","学者指出","研究人士认为","研究人员表示","研究人士指出","研究者认为","研究表明","研究显示","研究指出","网友表示","网友认为","网友指出","网友评论","有网友称","有网友表示","不少网友认为","部分网友认为","一些网友表示","公众认为","社会人士认为","有媒体报道","媒体报道称","媒体指出","媒体透露","媒体表示","某媒体报道","某媒体称","某媒体指出","某媒体表示","部分媒体报道","有调查显示","调查显示","调查发现","调查指出","调查表明","调查认为","研究调查显示","最新调查显示","据说","传闻","有传闻称","坊间传闻","市场传闻","外界传闻","网上传闻","网络传闻","传言","流传消息","有人表示","有人认为","有人指出","有人称","有人透露","有人爆料","有人反映","有人质疑","有人担忧","有人怀疑","相关人士","相关人士称","相关人士表示","有关人士","有关人士透露","有关人士称","有关人士表示","相关负责人表示","相关负责人称","有关方面表示","据悉","据透露","据介绍","据了解","据观察","据分析","据判断","据业内分析","据市场分析","据相关分析"];
+    const ehits = [...new Set(EMOTION_WORDS.filter(w => text.includes(w)))];
+    const shits = [...new Set(VAGUE_WORDS.filter(w => text.includes(w)))];
+    const es = Math.min(100, ehits.length * 8);
+    const ss = Math.min(100, shits.length * 12);
+    return {
+      emotion_score: es, source_score: ss,
+      total_score: Math.min(100, Math.round(es * 0.6 + ss * 0.4)),
+      emotion_level: es<=25?"低":es<=55?"中":"高",
+      source_level: ss<=20?"低":ss<=50?"中":"高",
+      total_level: "",
+      emotion_hits: ehits, vague_hits: shits
+    };
+  }
+</script>
+</body>
+</html>
